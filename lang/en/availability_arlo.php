@@ -26,5 +26,8 @@
 // Default langstring.
 $string['pluginname'] = 'Restriction by Arlo order payment status';
 $string['privacy:metadata'] = 'The Restriction by Arlo order payment status does not store any personal data.';
-$string['description'] = 'Require payment of Arlo order.';
-$string['title'] = 'Arlo';
+$string['description'] = 'Prevent access until the Order in Arlo has been paid for.';
+$string['title'] = 'Order paid for in Arlo';
+$string['description_allow'] = '';
+$string['requires_must'] = 'Arlo Order has NOT been paid for';
+$string['requires_mustnot'] = 'Arlo Order has been paid for';

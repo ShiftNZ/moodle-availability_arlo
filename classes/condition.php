@@ -51,12 +51,13 @@ class condition extends \core_availability\condition {
 
     public function is_available($not, \core_availability\info $info, $grabthelot, $userid) {
         // This should be the place where things are checked.
-        return false;
+        return true;
     }
 
     public function get_description($full, $not, \core_availability\info $info) {
         $allow = $not ? !$this->allow : $this->allow;
-        return $allow ? 'Allowed' : 'Not allowed';
+        // Todo: Make lang strings. In the very very rare case where the condition is NOT.
+        return $allow ? get_string('requires_must', 'availability_arlo') : get_string('requires_mustnot', 'availability_arlo');
     }
 
     protected function get_debug_string() {

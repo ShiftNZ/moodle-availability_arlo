@@ -29,15 +29,12 @@ namespace availability_arlo;
  * Front-end class.
  */
 class frontend extends \core_availability\frontend {
-    protected function get_javascript_strings() {
-        return [''];
-    }
-
     protected function get_javascript_init_params($course, \cm_info $cm = null, \section_info $section = null) {
         return [];
     }
 
     protected function allow_add($course, \cm_info $cm = null, \section_info $section = null) {
-        return false;
+        // Todo: This should not be able to be added if there is an existing restriction for this activity.
+        return true;
     }
 }
