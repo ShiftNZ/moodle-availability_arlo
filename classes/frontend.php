@@ -33,8 +33,47 @@ class frontend extends \core_availability\frontend {
         return [];
     }
 
+    /**
+     * Do all the things to ensure that the access restriction can be applied.
+     * This will only work on page load.
+     *
+     * @param $course
+     * @param \cm_info|null $cm
+     * @param \section_info|null $section
+     * @return bool
+     * @throws \moodle_exception
+     */
     protected function allow_add($course, \cm_info $cm = null, \section_info $section = null) {
-        // Todo: This should not be able to be added if there is an existing restriction for this activity.
+        // These classes need to exist.
+        $orderclass = 'enrol_arlo\Arlo\AuthAPI\Resource\Order';
+        $orderlineclass = 'enrol_arlo\Arlo\AuthAPI\Resource\OrderLine';
+        if (!(class_exists($orderclass) && class_exists($orderlineclass))) {
+            debugging("The enrol_arlo plugin is missing the classes for Order '$orderclass' and OrderLine '$orderlineclass'");
+            return false;
+        }
+        if (is_null($cm)) {
+            // New course module.
+            return true;
+        }
+        // Existing course module.
+        $context = $cm->context;
+        $coursemodule = $cm->get_modinfo()->get_cm($context->instanceid);
+        $coursemoduleavailability = json_decode($coursemodule->availability);
+        if (empty($coursemoduleavailability)) {
+            // Has no restrictions.
+            return true;
+        }
+        if (!isset($coursemoduleavailability->c)) {
+            return true;
+        }
+        if (!is_array($coursemoduleavailability->c)) {
+            return true;
+        }
+        foreach ($coursemoduleavailability->c as $item) {
+            if (isset($item->type) && $item->type === 'arlo') {
+                return false;
+            }
+        }
         return true;
     }
 }
