@@ -43,10 +43,23 @@ class condition extends \core_availability\condition {
         $this->allow = $structure->allow;
     }
 
+    /**
+     * Saves tree data back to structure object.
+     *
+     * @return object \stdClass object ready to be made into JSON
+     */
     public function save() {
         return (object)['allow' => $this->allow];
     }
 
+    /**
+     * Get a users enrolment instance for their course.
+     *
+     * @param int $courseid The id of the course to get the enrolment instance for
+     * @param int $userid The user id to get the enrolment instance for
+     * @return false|mixed False if no user enrolments found or the specific user enrolment record
+     * @throws \dml_exception A DML specific exception is thrown for any errors
+     */
     protected function get_enrolment_instance(int $courseid, int $userid) {
         global $DB;
 
@@ -58,13 +71,16 @@ class condition extends \core_availability\condition {
         $userenrolment = $DB->get_records_sql("$ueselect $uefrom $uejoin $uewhere", $ueparams);
         if (count($userenrolment) > 1) {
             // Alert of some stuff.
+            debugging("Somehow the user with id '$userid' is in a bunch of enrolment methods. Not sure this should be possible.");
         }
         return reset($userenrolment);
     }
 
     /**
-     * @param $registrationsourceid
-     * @return bool
+     * Check if the arlo order has been paid.
+     *
+     * @param int $registrationsourceid The Arlo registration id to check
+     * @return bool True if paid. False if not paid or (at this stage) an exception happened
      */
     protected function arlo_order_has_been_paid($registrationsourceid) : bool {
         global $CFG;
@@ -98,11 +114,26 @@ class condition extends \core_availability\condition {
         } catch (\Exception $exception) {
             // Todo: A message needs to be displayed.
         }
+        // Todo: Validate the false. This could be due to an exception that needs checking.
+        return false;
     }
 
+    /**
+     * This is the thing that checks if an arlo order has been paid for.
+     * It also checks if the person has an associated arlo registration.
+     * This is available to all of those that do not have an arlo registration.
+     *
+     * @param bool $not Set true if we are inverting the condition
+     * @param \core_availability\info $info Item we're checking
+     * @param bool $grabthelot Performance hint: if true, caches information
+     *   required for all course-modules, to make the front page and similar
+     *   pages work more quickly (works only for current user)
+     * @param int $userid User ID to check availability for
+     * @return bool True if available
+     * @throws \dml_exception
+     */
     public function is_available($not, \core_availability\info $info, $grabthelot, $userid) {
         global $DB;
-        // This should be the place where things are checked.
         $course = $info->get_course();
         $userenrolment = $this->get_enrolment_instance($course->id, $userid);
         if (empty($userenrolment)) {
@@ -117,13 +148,42 @@ class condition extends \core_availability\condition {
         return $this->arlo_order_has_been_paid($arloregistration->sourceid);
     }
 
+    /**
+     * Obtains a string describing this restriction (whether or not
+     * it actually applies). Used to obtain information that is displayed to
+     * students if the activity is not available to them, and for staff to see
+     * what conditions are.
+     *
+     * The $full parameter can be used to distinguish between 'staff' cases
+     * (when displaying all information about the activity) and 'student' cases
+     * (when displaying only conditions they don't meet).
+     *
+     * If implementations require a course or modinfo, they should use
+     * the get methods in $info.
+     *
+     * The special string <AVAILABILITY_CMNAME_123/> can be returned, where
+     * 123 is any number. It will be replaced with the correctly-formatted
+     * name for that activity.
+     *
+     * @param bool $full Set true if this is the 'full information' view
+     * @param bool $not Set true if we are inverting the condition
+     * @param \core_availability\info $info Item we're checking
+     * @return \lang_string|string Information string (for admin) about all restrictions on this item
+     * @throws \coding_exception When a coding exception occurs 🤣.
+     */
     public function get_description($full, $not, \core_availability\info $info) {
         $allow = $not ? !$this->allow : $this->allow;
         // Todo: Make lang strings. In the very very rare case where the condition is NOT.
         return $allow ? get_string('requires_must', 'availability_arlo') : get_string('requires_mustnot', 'availability_arlo');
     }
 
+    /**
+     * Obtains a representation of the options of this condition as a string, for debugging.
+     *
+     * @return string Text representation of parameters.
+     */
     protected function get_debug_string() {
-        return $this->allow ? 'YES' : 'NO';
+        // NGL, not actually sure what needs to go here.
+        return $this->allow ? 'y' : 'n';
     }
 }

@@ -29,6 +29,17 @@ namespace availability_arlo;
  * Front-end class.
  */
 class frontend extends \core_availability\frontend {
+    /**
+     * Gets additional parameters for the plugin's initInner function.
+     *
+     * This is just the same in the parent class. If we do need to do some stuff, we'll
+     * chuck it in here.
+     *
+     * @param \stdClass $course Course object
+     * @param \cm_info|null $cm Course-module currently being edited (null if none)
+     * @param \section_info|null $section Section currently being edited (null if none)
+     * @return array Array of parameters for the JavaScript function
+     */
     protected function get_javascript_init_params($course, \cm_info $cm = null, \section_info $section = null) {
         return [];
     }
@@ -37,11 +48,11 @@ class frontend extends \core_availability\frontend {
      * Do all the things to ensure that the access restriction can be applied.
      * This will only work on page load.
      *
-     * @param $course
-     * @param \cm_info|null $cm
-     * @param \section_info|null $section
-     * @return bool
-     * @throws \moodle_exception
+     * @param \stdClass $course Course object
+     * @param \cm_info|null $cm Course-module currently being edited (null if none)
+     * @param \section_info|null $section Section currently being edited (null if none)
+     * @return bool True if adding this restriction is allowed
+     * @throws \moodle_exception When a moodle_exception occurs
      */
     protected function allow_add($course, \cm_info $cm = null, \section_info $section = null) {
         // These classes need to exist.
