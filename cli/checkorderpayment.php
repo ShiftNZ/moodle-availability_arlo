@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * CLI script to sync contact organization info for enrol_arlo.
+ * CLI script to check Arlo order payment status for availability_arlo.
  *
- * @package     enrol_arlo
+ * @package     availability_arlo
  * @author      Donald Barrett <donaldb@skills.org.nz>
  * @copyright   2022 onwards, Skills Consulting Group Ltd
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -71,7 +71,7 @@ if ($unrecognized) {
 // Show help.
 if ($options['help']) {
     $help =
-        "CLI script to sync contact organization info.
+        "CLI script to check Arlo order payment status.
 
 Please note you must execute this script with the same uid as apache!
 
@@ -82,14 +82,11 @@ Options:
 -pl, --print-logo       Prints a cool CLI logo if available.
 
 Example:
-Run script with default parameters  - \$sudo -u www-data /usr/bin/php synccontactorganization.php\n
+Run script with default parameters  - \$sudo -u www-data /usr/bin/php checkorderpayment.php\n
 ";
     echo $help;
     die;
 }
-
-// Error checking.
-// Todo: Check any parameters that need stuff.
 
 // Set debugging.
 if (!$options['no-debugging']) {
@@ -99,7 +96,7 @@ if (!$options['no-debugging']) {
 
 // Start output log.
 $trace = new text_progress_trace();
-$trace->output(get_string('pluginname', 'enrol_arlo') . ' CLI script to sync contact organization info.');
+$trace->output(get_string('pluginname', 'availability_arlo') . ' CLI script to check Arlo order payment status.');
 
 // Say some stuff like debugging is whatever.
 if (!$options['no-debugging']) {
