@@ -27,7 +27,7 @@
 define('CLI_SCRIPT', true);
 
 // Config file.
-require_once(dirname(__FILE__, 4) . '/config.php');
+require_once(dirname(__FILE__, 5) . '/config.php');
 
 global $DB;
 
