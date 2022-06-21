@@ -38,20 +38,83 @@ class condition extends \core_availability\condition {
      * @param \stdClass $structure Data structure from JSON decode
      */
     public function __construct($structure) {
-        // Check the structure.
-        $this->allow = $structure->allow;
-
         // It is also a good idea to check for invalid values here and
         // throw a coding_exception if the structure is wrong.
+        $this->allow = $structure->allow;
     }
 
     public function save() {
-        return (object)['allow' => true];
+        return (object)['allow' => $this->allow];
+    }
+
+    protected function get_enrolment_instance(int $courseid, int $userid) {
+        global $DB;
+
+        $ueselect = "SELECT ue.*";
+        $uefrom = "FROM {user_enrolments} ue";
+        $uejoin = "JOIN {enrol} e ON e.id = ue.enrolid";
+        $uewhere = "WHERE ue.userid = :userid AND e.courseid = :courseid AND e.enrol = :enrol";
+        $ueparams = ['userid' => $userid, 'courseid' => $courseid, 'enrol' => 'arlo',];
+        $userenrolment = $DB->get_records_sql("$ueselect $uefrom $uejoin $uewhere", $ueparams);
+        if (count($userenrolment) > 1) {
+            // Alert of some stuff.
+        }
+        return reset($userenrolment);
+    }
+
+    /**
+     * @param $registrationsourceid
+     * @return bool
+     */
+    protected function arlo_order_has_been_paid($registrationsourceid) : bool {
+        global $CFG;
+        require_once("$CFG->dirroot/enrol/arlo/vendor/autoload.php");
+        try {
+            // Get the arlo plugin config.
+            $arlopluginconfig = new \enrol_arlo\local\config\arlo_plugin_config();
+
+            // Set the arlo api request uri.
+            $arlorequesturi = new \enrol_arlo\Arlo\AuthAPI\RequestUri();
+            $arlorequesturi->setHost($arlopluginconfig->get('platform'));
+            $arlorequesturi->setResourcePath("registrations/$registrationsourceid");
+            $arlorequesturi->addExpand('OrderLine/Order');
+
+            // Send the request.
+            $request = new \GuzzleHttp\Psr7\Request('GET', $arlorequesturi->output(true));
+            $response = \enrol_arlo\local\client::get_instance()->send_request($request);
+
+            // Process the response.
+            $arloregistration = \enrol_arlo\local\response_processor::process($response);
+
+            if (empty($arloregistration->getOrderLine()->Order->MarkedAsPaidDateTime)) {
+                return false;
+            } else {
+                return true;
+            }
+        } catch (\GuzzleHttp\Exception\GuzzleException $exception) {
+            // Todo: A message needs to be displayed.
+        } catch (\moodle_exception $exception) {
+            // Todo: A message needs to be displayed.
+        } catch (\Exception $exception) {
+            // Todo: A message needs to be displayed.
+        }
     }
 
     public function is_available($not, \core_availability\info $info, $grabthelot, $userid) {
+        global $DB;
         // This should be the place where things are checked.
-        return true;
+        $course = $info->get_course();
+        $userenrolment = $this->get_enrolment_instance($course->id, $userid);
+        if (empty($userenrolment)) {
+            // User is not enrolled via arlo.
+            return true;
+        }
+        $arloregistration = $DB->get_record('enrol_arlo_registration', ['enrolid' => $userenrolment->enrolid, 'userid' => $userid]);
+        if (empty($arloregistration)) {
+            // User not part of an Arlo registration.
+            return true;
+        }
+        return $this->arlo_order_has_been_paid($arloregistration->sourceid);
     }
 
     public function get_description($full, $not, \core_availability\info $info) {
