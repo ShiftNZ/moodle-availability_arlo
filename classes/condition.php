@@ -25,6 +25,8 @@
 
 namespace availability_arlo;
 
+use enrol_arlo\Arlo\AuthAPI\Exception\XMLDeserializerException;
+
 /**
  * Condition main class.
  */
@@ -40,6 +42,8 @@ class condition extends \core_availability\condition {
     public function __construct($structure) {
         // It is also a good idea to check for invalid values here and
         // throw a coding_exception if the structure is wrong.
+        //print_object($structure);die;
+        print_object($structure);
         $this->allow = $structure->allow;
     }
 
@@ -49,7 +53,7 @@ class condition extends \core_availability\condition {
      * @return object \stdClass object ready to be made into JSON
      */
     public function save() {
-        return (object)['allow' => $this->allow];
+        return (object)['allow' => $this->allow, 'type' => 'arlo', 'foo' => 'bar'];
     }
 
     /**
@@ -67,7 +71,7 @@ class condition extends \core_availability\condition {
         $uefrom = "FROM {user_enrolments} ue";
         $uejoin = "JOIN {enrol} e ON e.id = ue.enrolid";
         $uewhere = "WHERE ue.userid = :userid AND e.courseid = :courseid AND e.enrol = :enrol";
-        $ueparams = ['userid' => $userid, 'courseid' => $courseid, 'enrol' => 'arlo',];
+        $ueparams = ['userid' => $userid, 'courseid' => $courseid, 'enrol' => 'arlo'];
         $userenrolment = $DB->get_records_sql("$ueselect $uefrom $uejoin $uewhere", $ueparams);
         if (count($userenrolment) > 1) {
             // Alert of some stuff.
@@ -108,14 +112,24 @@ class condition extends \core_availability\condition {
                 return true;
             }
         } catch (\GuzzleHttp\Exception\GuzzleException $exception) {
-            // Todo: A message needs to be displayed.
+            debugging($exception->getMessage());
+            return false;
         } catch (\moodle_exception $exception) {
-            // Todo: A message needs to be displayed.
+            if ($exception->getMessage() == 'error/httpstatus:404') {
+                // No order, no cry.
+                return true;
+            }
+            debugging($exception->getMessage());
+            return false;
+        } catch (XMLDeserializerException $exception) {
+            // This should never happen because this is already checked in frontend class "allow_add".
+            debugging($exception->getMessage());
+            return false;
         } catch (\Exception $exception) {
-            // Todo: A message needs to be displayed.
+            // Some other exception happened
+            debugging($exception->getMessage());
+            return false;
         }
-        // Todo: Validate the false. This could be due to an exception that needs checking.
-        return false;
     }
 
     /**

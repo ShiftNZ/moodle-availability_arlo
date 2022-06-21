@@ -133,7 +133,8 @@ foreach ($registrations as $registration) {
     $response = $arloclient->send_request($request);
     try {
         $arloregistration = \enrol_arlo\local\response_processor::process($response);
-        $trace->output($arloregistration->getOrderLine()->Order->OrderID.' '.($arloregistration->getOrderLine()->Order->MarkedAsPaidDateTime ?? 'not paid'));
+        $order = $arloregistration->getOrderLine()->Order;
+        $trace->output($order->OrderID.' '.($order->MarkedAsPaidDateTime ?? 'not paid'));
     } catch (moodle_exception $exception) {
         // Ignore. This user must not have stuff.
         $trace->output("Exception happened - {$exception->getMessage()}");
