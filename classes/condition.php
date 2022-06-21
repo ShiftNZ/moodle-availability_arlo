@@ -42,8 +42,6 @@ class condition extends \core_availability\condition {
     public function __construct($structure) {
         // It is also a good idea to check for invalid values here and
         // throw a coding_exception if the structure is wrong.
-        //print_object($structure);die;
-        print_object($structure);
         $this->allow = $structure->allow;
     }
 
