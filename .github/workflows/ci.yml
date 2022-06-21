@@ -1,4 +1,4 @@
-name: Availability condition for Arlo Order payment status
+name: Run all tests
 
 on: [push, pull_request]
 
