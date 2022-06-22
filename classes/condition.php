@@ -187,8 +187,23 @@ class condition extends \core_availability\condition {
      * @throws \coding_exception When a coding exception occurs 🤣.
      */
     public function get_description($full, $not, \core_availability\info $info) {
-        if (!$not) {
+        global $USER, $DB;
+        $course = $info->get_course();
+        $userenrolment = $this->get_enrolment_instance($course->id, $USER->id);
+        $arloregistration = false;
+        if ($userenrolment) {
+            $params = ['enrolid' => $userenrolment->enrolid, 'userid' => $USER->id];
+            $arloregistration = $DB->get_record('enrol_arlo_registration', $params);
+        }
+        if ($not) {
+            if ($arloregistration) {
+                return get_string('requires_mustnot_withdetail', 'availability_arlo', $arloregistration->sourceid);
+            }
             return get_string('requires_mustnot', 'availability_arlo');
+        }
+        if ($arloregistration) {
+            // Show with detail.
+            return get_string('requires_must_withdetail', 'availability_arlo', $arloregistration->sourceid);
         }
         return get_string('requires_must', 'availability_arlo');
     }
