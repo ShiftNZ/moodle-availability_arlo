@@ -62,29 +62,6 @@ class frontend extends \core_availability\frontend {
             debugging("The enrol_arlo plugin is missing the classes for Order '$orderclass' and OrderLine '$orderlineclass'");
             return false;
         }
-        if (is_null($cm)) {
-            // New course module.
-            return true;
-        }
-        // Existing course module.
-        $context = $cm->context;
-        $coursemodule = $cm->get_modinfo()->get_cm($context->instanceid);
-        $coursemoduleavailability = json_decode($coursemodule->availability);
-        if (empty($coursemoduleavailability)) {
-            // Has no restrictions.
-            return true;
-        }
-        if (!isset($coursemoduleavailability->c)) {
-            return true;
-        }
-        if (!is_array($coursemoduleavailability->c)) {
-            return true;
-        }
-        foreach ($coursemoduleavailability->c as $item) {
-            if (isset($item->type) && $item->type === 'arlo') {
-                return false;
-            }
-        }
         return true;
     }
 }
