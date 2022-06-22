@@ -40,18 +40,17 @@ class condition extends \core_availability\condition {
      * @param \stdClass $structure Data structure from JSON decode
      */
     public function __construct($structure) {
-        // It is also a good idea to check for invalid values here and
-        // throw a coding_exception if the structure is wrong.
-        $this->allow = $structure->allow;
+        // At this point there is no data to validate.
     }
 
     /**
      * Saves tree data back to structure object.
      *
-     * @return object \stdClass object ready to be made into JSON
+     * @return \stdClass object ready to be made into JSON
      */
     public function save() {
-        return (object)['allow' => $this->allow, 'type' => 'arlo', 'foo' => 'bar'];
+        // At this point there is nothing to return.
+        return (new \stdClass());
     }
 
     /**
@@ -149,15 +148,19 @@ class condition extends \core_availability\condition {
         $course = $info->get_course();
         $userenrolment = $this->get_enrolment_instance($course->id, $userid);
         if (empty($userenrolment)) {
-            // User is not enrolled via arlo.
+            // User is not enrolled via Arlo. Never invert this.
             return true;
         }
         $arloregistration = $DB->get_record('enrol_arlo_registration', ['enrolid' => $userenrolment->enrolid, 'userid' => $userid]);
         if (empty($arloregistration)) {
-            // User not part of an Arlo registration.
+            // User not part of an Arlo registration. Never invert this.
             return true;
         }
-        return $this->arlo_order_has_been_paid($arloregistration->sourceid);
+        $allow = $this->arlo_order_has_been_paid($arloregistration->sourceid);
+        if ($not) {
+            $allow = !$allow;
+        }
+        return $allow;
     }
 
     /**
@@ -184,9 +187,10 @@ class condition extends \core_availability\condition {
      * @throws \coding_exception When a coding exception occurs 🤣.
      */
     public function get_description($full, $not, \core_availability\info $info) {
-        $allow = $not ? !$this->allow : $this->allow;
-        // Todo: Make lang strings. In the very very rare case where the condition is NOT.
-        return $allow ? get_string('requires_must', 'availability_arlo') : get_string('requires_mustnot', 'availability_arlo');
+        if (!$not) {
+            return get_string('requires_mustnot', 'availability_arlo');
+        }
+        return get_string('requires_must', 'availability_arlo');
     }
 
     /**
