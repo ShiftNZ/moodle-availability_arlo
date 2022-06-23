@@ -38,6 +38,10 @@ Alternatively, you can run (if you are a CLI warrior)
 
 to complete the installation from the command line.
 
+## What the Moodle versions? ##
+
+So far, this is only written and tested for Moodle 3.9.
+
 ## Issues and pull requests ##
 
 If you want some stuff fixed and can write some cool code that tries to align with the Moodle coding guidelines, feel free to write some stuff and submit a PR.
