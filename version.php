@@ -31,7 +31,7 @@ $plugin->requires = 2020061500;
 
 // Plugin details.
 $plugin->component = 'availability_arlo';
-$plugin->version = 2022062000;
-$plugin->release = 'v3.9.0';
-$plugin->maturity = MATURITY_ALPHA;
+$plugin->version = 2022062001;
+$plugin->release = 'v3.9.1';
+$plugin->maturity = MATURITY_STABLE;
 $plugin->dependencies = ['enrol_arlo' => 2020073112];
